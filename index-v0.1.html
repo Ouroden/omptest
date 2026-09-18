@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nullius — a Factorio prequel</title>
+<meta name="description" content="Nullius is a Factorio prequel overhaul: terraform a barren planet as an android, power a factory with renewables, and seed the world with life. Explore the Lambent Nil and Tricky Old Nick difficulty submods and the Fluorapatite setting.">
+<style>
+:root{
+  --bg:#07090d;
+  --bg2:#0b0f15;
+  --panel:#0e141c;
+  --panel2:#121a26;
+  --line:#1c2939;
+  --line2:#2a3d54;
+  --text:#d9e2ec;
+  --muted:#8b99ab;
+  --dim:#5c6b7e;
+  --teal:#5fe8c5;
+  --teal-dim:#2f9f85;
+  --teal-glow:rgba(95,232,197,.14);
+  --amber:#ffbb5c;
+  --amber-glow:rgba(255,187,92,.13);
+  --blue:#6cb8ff;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:rgba(95,232,197,.28)}
+a{color:var(--teal);text-decoration:none}
+a:hover{text-decoration:underline}
+code,pre,.mono{font-family:var(--mono)}
+img{max-width:100%}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* fixed background: glow orbs + faint grid */
+.sky{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(900px 520px at 12% -6%, rgba(95,232,197,.10), transparent 60%),
+    radial-gradient(760px 480px at 96% 18%, rgba(255,187,92,.06), transparent 60%),
+    radial-gradient(900px 600px at 50% 118%, rgba(108,184,255,.07), transparent 62%),
+    linear-gradient(var(--bg2), var(--bg));
+}
+.sky::after{
+  content:"";position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(140,170,205,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140,170,205,.05) 1px, transparent 1px);
+  background-size:64px 64px;
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 12%, black 30%, transparent 78%);
+  -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 12%, black 30%, transparent 78%);
+}
+
+/* ── nav ─────────────────────────────────────────── */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  background:rgba(7,9,13,.82);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{
+  max-width:1120px;margin:0 auto;padding:0 24px;
+  display:flex;align-items:center;gap:18px;height:58px;
+}
+.brand{
+  font-family:var(--sans);font-weight:800;letter-spacing:.34em;
+  font-size:13px;color:var(--text);white-space:nowrap;
+}
+.brand:hover{text-decoration:none}
+.brand b{color:var(--teal);font-weight:800}
+.nav-links{
+  margin-left:auto;display:flex;gap:4px;overflow-x:auto;
+  scrollbar-width:none;
+}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{
+  color:var(--muted);font-size:13px;white-space:nowrap;
+  padding:6px 10px;border-radius:7px;transition:color .18s, background .18s;
+}
+.nav-links a:hover{color:var(--text);text-decoration:none}
+.nav-links a.active{color:var(--teal);background:var(--teal-glow)}
+
+/* ── hero ────────────────────────────────────────── */
+.hero{
+  position:relative;
+  padding:168px 0 84px;
+  text-align:center;
+}
+.eyebrow{
+  font-family:var(--mono);font-size:12px;letter-spacing:.22em;
+  color:var(--teal);text-transform:uppercase;
+}
+.wordmark{
+  margin:18px 0 26px;
+  font-weight:800;
+  font-size:clamp(3.4rem, 11vw, 7.2rem);
+  letter-spacing:.30em;
+  margin-right:-.30em; /* optically re-center tracked caps */
+  line-height:1;
+  color:var(--text);
+  text-shadow:0 0 44px rgba(95,232,197,.22);
+}
+.tagline{
+  font-size:clamp(1.15rem, 2.4vw, 1.5rem);
+  font-weight:600;color:var(--text);
+  max-width:34ch;margin:0 auto;
+}
+.tagline em{color:var(--teal);font-style:normal}
+.hero-sub{
+  margin:20px auto 0;max-width:62ch;
+  color:var(--muted);font-size:1.02rem;
+}
+.stats{
+  margin:44px auto 0;
+  display:flex;flex-wrap:wrap;justify-content:center;
+  gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:12px;
+  overflow:hidden;max-width:920px;
+}
+.stat{
+  background:var(--panel);
+  padding:16px 26px;min-width:150px;flex:1 1 auto;
+}
+.stat b{
+  display:block;font-family:var(--mono);font-weight:600;
+  font-size:1.25rem;color:var(--teal);
+}
+.stat span{
+  font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dim);
+}
+.ctas{
+  margin-top:36px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+}
+.btn{
+  display:inline-block;padding:11px 22px;border-radius:9px;
+  font-size:14px;font-weight:600;letter-spacing:.02em;
+  border:1px solid var(--line2);color:var(--text);
+  transition:background .18s, border-color .18s, transform .12s;
+}
+.btn:hover{transform:translateY(-1px);text-decoration:none}
+.btn.primary{
+  background:var(--teal);border-color:var(--teal);
+  color:#04231b;
+}
+.btn.primary:hover{background:#7df0d4}
+
+/* ── sections ────────────────────────────────────── */
+section{padding:88px 0}
+section + section{border-top:1px solid var(--line)}
+.sec-head{margin-bottom:40px;max-width:760px}
+.sec-head h2{
+  margin-top:10px;
+  font-size:clamp(1.7rem, 3.6vw, 2.4rem);
+  font-weight:750;letter-spacing:-.01em;line-height:1.15;
+}
+.sec-head p{margin-top:12px;color:var(--muted);font-size:1.05rem}
+h3{font-size:1.05rem;font-weight:650}
+.lede{font-size:1.06rem;color:var(--text);max-width:70ch}
+.muted{color:var(--muted)}
+
+/* reveal-on-scroll */
+.reveal{opacity:0;transform:translateY(16px);
+  transition:opacity .6s ease, transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+
+/* cards */
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(2, 1fr)}
+.grid-3{grid-template-columns:repeat(3, 1fr)}
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:22px 22px;
+  transition:border-color .18s, transform .12s;
+}
+.card:hover{border-color:var(--line2)}
+.card h3{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.card p{color:var(--muted);font-size:.95rem}
+.card p + p{margin-top:8px}
+
+/* resource tags */
+.tag{
+  display:inline-block;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--teal);background:var(--teal-glow);
+  border:1px solid rgba(95,232,197,.25);
+  padding:2px 8px;border-radius:5px;
+}
+.tag.amber{color:var(--amber);background:var(--amber-glow);border-color:rgba(255,187,92,.28)}
+.tag.blue{color:var(--blue);background:rgba(108,184,255,.12);border-color:rgba(108,184,255,.25)}
+.tag.plain{color:var(--muted);background:rgba(139,153,171,.1);border-color:var(--line2)}
+.dot{
+  width:10px;height:10px;border-radius:50%;flex:none;
+  background:var(--teal);box-shadow:0 0 12px var(--teal);
+}
+.dot.amber{background:var(--amber);box-shadow:0 0 12px var(--amber)}
+.dot.blue{background:var(--blue);box-shadow:0 0 12px var(--blue)}
+
+/* pull quote */
+.quote{
+  border-left:3px solid var(--teal);
+  background:linear-gradient(90deg, var(--teal-glow), transparent 70%);
+  padding:18px 22px;border-radius:0 10px 10px 0;
+  font-size:1.08rem;color:var(--text);
+}
+.quote small{display:block;margin-top:8px;color:var(--dim);font-size:.85rem}
+
+/* code chips */
+.chip{
+  display:inline-block;font-family:var(--mono);font-size:12.5px;
+  color:var(--text);background:var(--panel2);
+  border:1px solid var(--line2);border-radius:6px;
+  padding:3px 9px;
+}
+pre.code{
+  background:#0a0e14;border:1px solid var(--line);
+  border-radius:10px;padding:14px 16px;overflow-x:auto;
+  font-size:12.5px;line-height:1.7;color:var(--muted);
+}
+pre.code .k{color:var(--teal)}
+pre.code .n{color:var(--amber)}
+
+/* ── energy ladder ───────────────────────────────── */
+.ladder{position:relative;max-width:760px}
+.rung{
+  position:relative;padding:0 0 26px 34px;
+}
+.rung::before{ /* rail */
+  content:"";position:absolute;left:9px;top:8px;bottom:-4px;
+  width:2px;background:var(--line);
+}
+.rung:last-child::before{display:none}
+.rung::after{ /* node */
+  content:"";position:absolute;left:3px;top:5px;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--teal-dim);
+  box-shadow:0 0 10px rgba(95,232,197,.35);
+}
+.rung .when{
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim);
+}
+.rung h3{margin:4px 0 6px;font-size:1.06rem}
+.rung p{color:var(--muted);font-size:.95rem;max-width:60ch}
+
+/* ── endgame steps ───────────────────────────────── */
+.steps{counter-reset:step}
+.step{position:relative;padding-left:52px}
+.step::before{
+  counter-increment:step;content:counter(step, decimal-leading-zero);
+  position:absolute;left:0;top:2px;
+  font-family:var(--mono);font-size:1.05rem;color:var(--teal);
+}
+.step h3{margin-bottom:6px}
+.step p{color:var(--muted);font-size:.95rem}
+
+/* ── submod cards ────────────────────────────────── */
+.submod{display:flex;flex-direction:column;gap:14px}
+.submod .meta{
+  display:flex;flex-wrap:wrap;gap:8px 18px;
+  font-family:var(--mono);font-size:12px;color:var(--muted);
+}
+.submod .meta b{color:var(--teal);font-weight:600}
+.submod p.desc{color:var(--muted);font-size:.95rem}
+.submod .note{
+  font-size:.88rem;color:var(--text);
+  background:var(--panel2);border:1px solid var(--line);
+  border-left:3px solid var(--amber);
+  border-radius:8px;padding:12px 14px;
+}
+.submod.ln .note{border-left-color:var(--amber)}
+.submod.ton .note{border-left-color:var(--blue)}
+.stack{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:12.5px;color:var(--muted);
+}
+.stack .arrow{color:var(--teal)}
+
+/* ── fluorapatite demo ───────────────────────────── */
+.fluor-panel{
+  display:grid;grid-template-columns:minmax(260px, 380px) 1fr;
+  gap:0;border:1px solid var(--line);border-radius:14px;
+  overflow:hidden;background:var(--panel);
+}
+.fluor-ctl{
+  padding:28px 26px;border-right:1px solid var(--line);
+  background:linear-gradient(160deg, var(--panel2), var(--panel));
+}
+.fluor-ctl .chip{margin-bottom:14px}
+.switch-row{display:flex;align-items:center;gap:14px}
+.switch{
+  position:relative;width:52px;height:28px;flex:none;
+  appearance:none;-webkit-appearance:none;outline:none;cursor:pointer;
+  background:#1a2534;border:1px solid var(--line2);border-radius:999px;
+  transition:background .2s, border-color .2s;
+}
+.switch::after{
+  content:"";position:absolute;top:3px;left:3px;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--dim);
+  transition:transform .2s, background .2s;
+}
+.switch:checked{
+  background:var(--amber-glow);border-color:var(--amber);
+}
+.switch:checked::after{
+  transform:translateX(24px);
+  background:var(--amber);box-shadow:0 0 10px rgba(255,187,92,.5);
+}
+.switch:focus-visible{box-shadow:0 0 0 3px rgba(95,232,197,.3)}
+.switch-label{font-weight:650;font-size:1.02rem}
+.fluor-status{
+  margin-top:14px;font-family:var(--mono);font-size:12.5px;
+  color:var(--muted);min-height:2.6em;
+}
+.fluor-demo{padding:28px 26px}
+.fluor-demo h3{margin-bottom:6px}
+.fluor-demo .sub{color:var(--muted);font-size:.92rem;margin-bottom:16px}
+.chains{display:grid;gap:12px}
+.chain{
+  border:1px solid var(--line);border-radius:10px;
+  padding:14px 16px;background:var(--bg2);
+}
+.chain .flows{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.fchip{
+  font-family:var(--mono);font-size:12.5px;
+  padding:4px 10px;border-radius:6px;
+  background:var(--teal-glow);color:var(--teal);
+  border:1px solid rgba(95,232,197,.28);
+}
+.fchip.f{background:var(--amber-glow);color:var(--amber);border-color:rgba(255,187,92,.3)}
+.fchip.dim{background:rgba(139,153,171,.08);color:var(--dim);border-color:var(--line2)}
+.flow-arrow{color:var(--dim);font-family:var(--mono)}
+.chain-note{font-size:.85rem;color:var(--muted);margin-top:8px}
+#fluorDemo .only-on{display:none}
+#fluorDemo.on .only-on{display:block}
+#fluorDemo.on .only-off{display:none}
+#fluorDemo.on .chain.f-chain{border-color:rgba(255,187,92,.4);
+  box-shadow:0 0 24px rgba(255,187,92,.08)}
+
+/* ── settings table ──────────────────────────────── */
+.searchbar{position:relative;max-width:420px;margin-bottom:18px}
+.searchbar input{
+  width:100%;padding:11px 14px 11px 38px;
+  background:var(--panel);border:1px solid var(--line2);
+  border-radius:9px;color:var(--text);font-size:14px;
+  font-family:var(--sans);
+}
+.searchbar input:focus{outline:none;border-color:var(--teal-dim);
+  box-shadow:0 0 0 3px rgba(95,232,197,.15)}
+.searchbar::before{
+  content:"⌕";position:absolute;left:13px;top:50%;transform:translateY(-52%);
+  color:var(--dim);font-size:17px;
+}
+.table-scroll{overflow-x:auto;border:1px solid var(--line);
+  border-radius:12px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:680px}
+thead th{
+  text-align:left;font-family:var(--mono);font-size:11px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+  padding:12px 16px;border-bottom:1px solid var(--line);
+  background:var(--bg2);white-space:nowrap;
+}
+tbody td{
+  padding:11px 16px;border-bottom:1px solid var(--line);
+  vertical-align:top;
+}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(95,232,197,.04)}
+td .chip{font-size:12px}
+td.num{font-family:var(--mono);color:var(--teal);white-space:nowrap}
+td .src{font-family:var(--mono);font-size:11.5px;color:var(--dim);
+  text-transform:uppercase;letter-spacing:.1em}
+#settingsCount{margin-top:12px;font-family:var(--mono);
+  font-size:12px;color:var(--dim)}
+
+/* ── ecosystem ───────────────────────────────────── */
+.dep-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.dep-col h3{margin-bottom:10px;font-size:.95rem}
+.dep-col h3 .count{color:var(--teal);font-family:var(--mono);font-size:.85rem}
+.deplist{list-style:none;display:flex;flex-direction:column;gap:6px}
+.deplist li{
+  font-family:var(--mono);font-size:12.5px;color:var(--muted);
+  background:var(--bg2);border:1px solid var(--line);
+  border-radius:6px;padding:5px 10px;
+}
+.deplist li.conflict{color:#e79a9a;border-color:rgba(231,154,154,.25);
+  background:rgba(231,154,154,.05)}
+.deplist li.more{color:var(--dim);border-style:dashed}
+.dep-total{
+  display:flex;align-items:baseline;gap:14px;margin-bottom:22px;
+}
+.dep-total b{
+  font-family:var(--mono);font-size:2.2rem;font-weight:600;
+  color:var(--teal);
+}
+.dep-total span{color:var(--muted);font-size:.95rem;max-width:52ch}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.linkrow{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+a.chiplink{
+  font-family:var(--mono);font-size:12.5px;color:var(--text);
+  background:var(--panel2);border:1px solid var(--line2);
+  padding:7px 13px;border-radius:8px;white-space:nowrap;
+  transition:border-color .18s, color .18s;
+}
+a.chiplink:hover{border-color:var(--teal);color:var(--teal);text-decoration:none}
+a.chiplink::before{content:"↗ ";color:var(--dim)}
+
+/* ── footer ──────────────────────────────────────── */
+footer{
+  border-top:1px solid var(--line);
+  padding:44px 0 56px;margin-top:24px;
+}
+.foot-grid{
+  display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;
+  align-items:flex-start;
+}
+footer p{color:var(--dim);font-size:.88rem;max-width:64ch}
+footer .fbrand{
+  font-weight:800;letter-spacing:.3em;font-size:12px;color:var(--muted);
+  margin-bottom:10px;
+}
+footer .fbrand b{color:var(--teal)}
+.foot-links{display:flex;gap:16px;flex-wrap:wrap}
+.foot-links a{color:var(--muted);font-size:.88rem}
+
+/* ── responsive ──────────────────────────────────── */
+@media (max-width: 900px){
+  .grid-3{grid-template-columns:1fr 1fr}
+  .dep-grid{grid-template-columns:1fr}
+  .fluor-panel{grid-template-columns:1fr}
+  .fluor-ctl{border-right:none;border-bottom:1px solid var(--line)}
+}
+@media (max-width: 640px){
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  section{padding:64px 0}
+  .hero{padding-top:140px}
+  .stat{min-width:120px;padding:13px 16px}
+  .stat b{font-size:1.05rem}
+  .nav-inner{padding:0 16px}
+  .wrap{padding:0 18px}
+}
+
+/* ── reduced motion ──────────────────────────────── */
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true"></div>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top">N<b>U</b>LLIUS</a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#overview">Overview</a>
+      <a href="#resources">Resources</a>
+      <a href="#energy">Energy</a>
+      <a href="#endgame">Endgame</a>
+      <a href="#difficulty">Difficulty</a>
+      <a href="#fluorapatite">Fluorapatite</a>
+      <a href="#settings">Settings</a>
+      <a href="#ecosystem">Ecosystem</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- ── hero ──────────────────────────────────────── -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <p class="eyebrow">Factorio overhaul · prequel</p>
+    <h1 class="wordmark">NULLIUS</h1>
+    <p class="tagline">An android wakes on a barren world. No coal. No oil.
+      No biters. <em>Seed it with life.</em></p>
+    <p class="hero-sub">A Factorio prequel that replaces every recipe and
+      technology. Rely on abundant elements drawn from the air, the sea, and
+      common minerals — and mine asteroids for the rarer ones.</p>
+
+    <div class="stats" role="list">
+      <div class="stat" role="listitem"><b>2.0.11</b><span>latest version</span></div>
+      <div class="stat" role="listitem"><b>1.1–2.0</b><span>Factorio versions</span></div>
+      <div class="stat" role="listitem"><b>45.8K</b><span>downloads</span></div>
+      <div class="stat" role="listitem"><b>62 / 121</b><span>dependencies</span></div>
+      <div class="stat" role="listitem"><b>2021</b><span>in development since</span></div>
+    </div>
+
+    <div class="ctas">
+      <a class="btn primary" href="https://mods.factorio.com/mod/nullius">Mod portal</a>
+      <a class="btn" href="https://github.com/GregorSamsanite/nullius">GitHub source</a>
+      <a class="btn" href="https://discord.gg/tZY2Rkte8Y">Discord</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── overview ──────────────────────────────────── -->
+<section id="overview">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">01 · overview</p>
+      <h2>A prequel set before the crash landing</h2>
+      <p>In the main game, engineers crash land with a rocket. In Nullius,
+        you play the android sent ahead to make that crash landable.</p>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card reveal">
+        <h3><span class="dot"></span>Terraform first, factory second</h3>
+        <p class="lede">In this Factorio prequel, you play an android sent to
+          terraform barren planets and seed them with life. Eons later your
+          efforts will result in a galaxy full of planets ready for engineers
+          to crash land on.</p>
+        <p>This is a full overhaul mod that replaces all recipes and
+          technologies. No life means no coal, no oil, no wood, no biters, and
+          no free oxygen in the atmosphere — so there is no burner technology
+          either.</p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot"></span>Built on light elements</h3>
+        <p class="lede">Since many planets are poor in rare heavier elements
+          like copper or uranium, your technology will focus on the most
+          abundant, lighter elements.</p>
+        <p>Advanced resources such as copper and uranium only become available
+          later, once asteroid mining technology is reached.</p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot"></span>Duplicate yourself</h3>
+        <p class="lede">You can build duplicates of yourself and control
+          multiple android bodies to accomplish tasks more quickly.</p>
+        <p>One mind, many hands — the first step toward an industrial base
+          large enough to launch rockets.</p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot"></span>A clean void</h3>
+        <p class="lede">The map is generated without the pollution system —
+          Nullius forces the map setting off in <code>data.lua</code>:</p>
+        <pre class="code"><span class="k">data.raw</span>["map-settings"]["map-settings"].pollution.enabled = <span class="n">false</span></pre>
+        <p>Your challenge is scarcity, not smog.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── resources ─────────────────────────────────── -->
+<section id="resources">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">02 · resources</p>
+      <h2>Seven fundamentals</h2>
+      <p>The fundamental natural resources are Iron Ore, Sandstone, Bauxite,
+        Calcite, Air, Seawater, and Volcanic Gas. Everything else is
+        manufactured — or mined off asteroids.</p>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card reveal">
+        <h3><span class="dot"></span>Iron Ore</h3>
+        <p class="tag">ore</p>
+        <p>The backbone of the early game: iron feeds smelting, steel, and the
+          machines that build everything else.</p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot"></span>Sandstone</h3>
+        <p class="tag">ore</p>
+        <p>Provides silicon — essential for electronics and glass — plus trace
+          quantities of titanium ore.</p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot"></span>Bauxite</h3>
+        <p class="tag">ore</p>
+        <p>An ore for aluminum, a useful electrical conductor and structural
+          material.</p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot"></span>Calcite</h3>
+        <p class="tag">ore</p>
+        <p>A source of calcium, useful in cement, glass, and metallurgy — and a
+          source of trace amounts of sulfur.</p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot blue"></span>Air</h3>
+        <p class="tag blue">gas</p>
+        <p>Mostly nitrogen and carbon dioxide — a critical feedstock for
+          organic chemistry products like plastic — with traces of other
+          important gases, including noble gases like argon and helium.</p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot blue"></span>Seawater</h3>
+        <p class="tag blue">fluid</p>
+        <p>A source of hydrogen, oxygen, chlorine, sodium, and trace amounts of
+          deuterium, tritium, lithium, and other minerals.</p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot blue"></span>Volcanic Gas</h3>
+        <p class="tag blue">gas</p>
+        <p>A source of sulfur, carbon monoxide, and trace amounts of boron.
+          Pumps it up; vents it safely.</p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot amber"></span>Asteroids</h3>
+        <p class="tag amber">advanced</p>
+        <p>Advanced resources like copper and uranium become available later
+          with asteroid mining technology.</p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot amber"></span>Submod resources</h3>
+        <p class="tag amber">extended</p>
+        <p>Lambent Nil adds phosphorus; Tricky Old Nick adds nickel. Each
+          modifies existing recipes to use its resource — see
+          <a href="#difficulty">Difficulty</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── energy ────────────────────────────────────── -->
+<section id="energy">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">03 · energy</p>
+      <h2>No burners. Ever.</h2>
+      <p>Without coal or free oxygen, there is no burner technology. You rely
+        on a blend of renewable energy sources, unlocked in stages.</p>
+    </div>
+
+    <div class="ladder reveal">
+      <div class="rung">
+        <p class="when">earliest</p>
+        <h3>Wind</h3>
+        <p>The earliest source: intermittent, and turbines have to be spaced
+          out. The factory learns to breathe with the weather.</p>
+      </div>
+      <div class="rung">
+        <p class="when">next</p>
+        <h3>Solar</h3>
+        <p>A slightly more advanced alternative — with the usual day–night
+          cycle, so output follows the sun.</p>
+      </div>
+      <div class="rung">
+        <p class="when">steady</p>
+        <h3>Geothermal</h3>
+        <p>The first steady source of energy, but it may only be placed in
+          limited volcanic locations.</p>
+      </div>
+      <div class="rung">
+        <p class="when">advanced</p>
+        <h3>Deuterium–tritium fusion</h3>
+        <p>At higher technology levels there is nuclear power, starting with
+          fusion of isotopes harvested from seawater.</p>
+      </div>
+      <div class="rung">
+        <p class="when">endgame</p>
+        <h3>Uranium fission</h3>
+        <p>Eventually uranium fission — once asteroid mining is unlocked and
+          the heavy elements arrive.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:28px">
+      <div class="card reveal">
+        <h3><span class="dot"></span>Storage is the real puzzle</h3>
+        <p class="lede">Wind and solar require energy storage, but without
+          heavy elements, batteries require moderately advanced technology.</p>
+        <p>Prior to unlocking batteries you will need other energy storage
+          strategies — including stored hydrogen/oxygen to burn during periods
+          of low energy production, and compressed gas energy storage.</p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot blue"></span>Renewable by design</h3>
+        <p class="lede">No life means no free oxygen, requiring varied
+          renewable energy sources.</p>
+        <p>Every megawatt in Nullius traces back to the wind, the sun, the
+          planet's heat, or the isotopes in its water.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── endgame ───────────────────────────────────── -->
+<section id="endgame">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">04 · endgame</p>
+      <h2>Seed the world with life</h2>
+      <p>Once you've established a sufficient industrial base to launch
+        rockets, the game stops being about production — and starts being
+        about biology.</p>
+    </div>
+
+    <div class="grid steps">
+      <div class="step reveal">
+        <h3>Raise the oxygen level</h3>
+        <p>The atmosphere has no free oxygen. You will need to raise its oxygen
+          level before a living ecosystem can hold.</p>
+      </div>
+      <div class="step reveal">
+        <h3>Reestablish contact with your progenitors</h3>
+        <p>You must reestablish communications with your progenitors to download
+          genomes of the species you will seed.</p>
+      </div>
+      <div class="step reveal">
+        <h3>Build biology from scratch</h3>
+        <p>Assemble biological materials from scratch until you have a
+          sufficient breeding stock to reproduce itself naturally — a
+          genetically diverse ecosystem of multiple plant and animal species,
+          each with their own survival requirements.</p>
+      </div>
+      <div class="step reveal">
+        <h3>Let the factory farm life</h3>
+        <p>Many of these species produce useful materials more cheaply than you
+          can manufacture them, so you may wish to integrate some of these
+          organisms into your factory production lines.</p>
+      </div>
+      <div class="step reveal">
+        <h3>Send your duplicates out</h3>
+        <p>Launch some of your duplicates to repeat this process on other
+          planets throughout the galaxy — the world you built becomes the
+          cradle for the engineers who crash land on it.</p>
+      </div>
+    </div>
+
+    <div class="quote reveal" style="margin-top:34px">
+      Eons later your efforts will result in a galaxy full of planets ready for
+      engineers to crash land on.
+      <small>— the nullius premise, mod portal</small>
+    </div>
+  </div>
+</section>
+
+<!-- ── difficulty submods ────────────────────────── -->
+<section id="difficulty">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">05 · difficulty</p>
+      <h2>Two ways to make it harder</h2>
+      <p>The content mods <b>Lambent Nil</b> and <b>Tricky Old Nick</b> extend
+        Nullius with new basic resources and modify recipes to use them.</p>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card submod ln reveal">
+        <h3><span class="dot amber"></span>Lambent Nil</h3>
+        <div class="meta">
+          <span><b>v3.2.5</b></span>
+          <span><b>2.86K</b> downloads</span>
+          <span>Factorio <b>1.1–2.0</b></span>
+          <span>MIT</span>
+        </div>
+        <p class="desc">A Nullius extension that integrates phosphorus
+          chemistry and extends the electronics production chain. Phosphorus —
+          a rare resource refined from phosphorite rock — is used in
+          electronics, biochemistry, and chemical separation of exotic
+          elements.</p>
+        <div class="note">Carries the <b>Fluorapatite</b> startup setting:
+          when enabled, fluorine is added to some recipes for an increased
+          challenge. Off by default. → <a href="#fluorapatite">Try the toggle</a></div>
+        <div class="linkrow" style="margin-top:16px">
+          <a class="chiplink" href="https://mods.factorio.com/mod/lambent-nil">Mod portal</a>
+          <a class="chiplink" href="https://codeberg.org/cirodrig/lambent-nil">Codeberg source</a>
+        </div>
+      </div>
+
+      <div class="card submod ton reveal">
+        <h3><span class="dot blue"></span>Tricky Old Nick</h3>
+        <div class="meta">
+          <span><b>v1.2.7</b></span>
+          <span><b>2.40K</b> downloads</span>
+          <span>Factorio <b>1.1–2.0</b></span>
+          <span>MIT</span>
+        </div>
+        <p class="desc">The rare metal nickel — an easily refined conductive,
+          corrosion-resistant material — underpins production as the android
+          sets out to terraform the planet. With technological advances, nickel
+          is displaced by aluminum and steel, yet it remains essential for
+          niche applications due to its distinctive magnetic, heat-tolerant,
+          and chemical properties.</p>
+        <div class="note">Makes the <b>early game more challenging</b> —
+          recommended for players who like to play with many ores, or who want
+          a replay with a fresh challenge at the outset.</div>
+        <div class="stack" style="margin-top:14px">
+          <span class="chip">nullius ≥ 2.0.4</span>
+          <span class="arrow">+</span>
+          <span class="chip">lambent-nil ≥ 3.2.4</span>
+          <span>— layers on top of Lambent Nil</span>
+        </div>
+        <div class="linkrow" style="margin-top:16px">
+          <a class="chiplink" href="https://mods.factorio.com/mod/tricky-old-nick">Mod portal</a>
+          <a class="chiplink" href="https://codeberg.org/cirodrig/tricky-old-nick">Codeberg source</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── fluorapatite ──────────────────────────────── -->
+<section id="fluorapatite">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">06 · fluorapatite</p>
+      <h2>One switch, more chemistry</h2>
+      <p>Lambent Nil's startup setting
+        <span class="chip">lambent-nil-fluorine</span> — displayed in-game as
+        <b>Fluorapatite</b> — "adds fluorine to some recipes for an increased
+        challenge". It ships <b>off</b> by default, and being a startup
+        setting it's chosen when the world is created.</p>
+    </div>
+
+    <div class="fluor-panel reveal">
+      <div class="fluor-ctl">
+        <span class="chip">bool-setting · startup</span>
+        <div class="switch-row">
+          <input type="checkbox" id="fluorToggle" class="switch"
+                 role="switch" aria-label="Fluorapatite setting">
+          <label class="switch-label" for="fluorToggle">Fluorapatite</label>
+        </div>
+        <p class="fluor-status" id="fluorStatus" aria-live="polite"></p>
+        <p class="sub muted" style="margin-top:12px;font-size:.85rem">
+          Default: <b>false</b>. Defined in Lambent Nil's
+          <code>settings.lua</code>; try the switch to see what changes in
+          the production picture.</p>
+      </div>
+
+      <div class="fluor-demo" id="fluorDemo">
+        <h3>What changes</h3>
+        <p class="sub">Lambent Nil's phosphorus chain is always there. The
+          switch decides whether fluorine enters the chemistry.</p>
+        <div class="chains">
+          <div class="chain">
+            <strong>Phosphorus chain</strong>
+            <div class="flows">
+              <span class="fchip">phosphorite rock</span>
+              <span class="flow-arrow">→</span>
+              <span class="fchip">phosphorus</span>
+              <span class="flow-arrow">→</span>
+              <span class="fchip">electronics</span>
+              <span class="fchip">biochemistry</span>
+              <span class="fchip">exotic-element separation</span>
+            </div>
+            <p class="chain-note">Refined from phosphorite rock; feeds
+              electronics, biochemistry, and the chemical separation of exotic
+              elements.</p>
+          </div>
+
+          <div class="chain f-chain only-on">
+            <strong>Fluorine enters the recipes</strong>
+            <div class="flows">
+              <span class="fchip f">fluorapatite</span>
+              <span class="flow-arrow">→</span>
+              <span class="fchip f">fluorine</span>
+              <span class="flow-arrow">→</span>
+              <span class="fchip f">added to some recipes</span>
+            </div>
+            <p class="chain-note">With the setting on, fluorine is added to
+              some recipes for an increased challenge — more feedstock to
+              track, separate, and route.</p>
+          </div>
+
+          <div class="chain only-off">
+            <strong>Fluorine stays out</strong>
+            <div class="flows">
+              <span class="fchip dim">fluorapatite</span>
+              <span class="flow-arrow">→</span>
+              <span class="fchip dim">fluorine</span>
+              <span class="flow-arrow">→</span>
+              <span class="fchip dim">not required</span>
+            </div>
+            <p class="chain-note">With the setting off, the standard phosphorus
+              chain runs without fluorine requirements.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── settings ──────────────────────────────────── -->
+<section id="settings">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">07 · settings</p>
+      <h2>Tuned at world creation</h2>
+      <p>Nullius exposes seven startup settings; Lambent Nil adds one more.
+        All are startup settings — chosen when the world is created. Search to
+        filter the list.</p>
+    </div>
+
+    <div class="reveal">
+      <div class="searchbar">
+        <input type="search" id="settingsSearch"
+               placeholder="Filter settings… (e.g. wind, pump, fluorine)"
+               aria-label="Filter settings">
+      </div>
+
+      <div class="table-scroll">
+        <table id="settingsTable">
+          <thead>
+            <tr>
+              <th>setting</th><th>mod</th><th>type</th>
+              <th>default</th><th>range</th><th>notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-text="nullius-alignment nullius boolean alignment">
+              <td><span class="chip">nullius-alignment</span></td>
+              <td><span class="src">nullius</span></td>
+              <td>boolean</td>
+              <td class="num">on</td>
+              <td>—</td>
+              <td class="muted">—</td>
+            </tr>
+            <tr data-text="nullius-wind-turbine-energy-multiplier nullius double wind turbine energy multiplier hidden">
+              <td><span class="chip">nullius-wind-turbine-energy-multiplier</span></td>
+              <td><span class="src">nullius</span></td>
+              <td>double</td>
+              <td class="num">1.0</td>
+              <td>0.01–100</td>
+              <td class="muted">hidden from the in-game settings UI</td>
+            </tr>
+            <tr data-text="nullius-hide-void-alt nullius boolean void alt">
+              <td><span class="chip">nullius-hide-void-alt</span></td>
+              <td><span class="src">nullius</span></td>
+              <td>boolean</td>
+              <td class="num">on</td>
+              <td>—</td>
+              <td class="muted">—</td>
+            </tr>
+            <tr data-text="nullius-hide-recipe-signals nullius boolean recipe signals">
+              <td><span class="chip">nullius-hide-recipe-signals</span></td>
+              <td><span class="src">nullius</span></td>
+              <td>boolean</td>
+              <td class="num">off</td>
+              <td>—</td>
+              <td class="muted">—</td>
+            </tr>
+            <tr data-text="nullius-match-wind-turbine-activity-sound nullius boolean wind turbine sound">
+              <td><span class="chip">nullius-match-wind-turbine-activity-sound</span></td>
+              <td><span class="src">nullius</span></td>
+              <td>boolean</td>
+              <td class="num">on</td>
+              <td>—</td>
+              <td class="muted">—</td>
+            </tr>
+            <tr data-text="nullius-wind-turbine-volume nullius double wind turbine volume">
+              <td><span class="chip">nullius-wind-turbine-volume</span></td>
+              <td><span class="src">nullius</span></td>
+              <td>double</td>
+              <td class="num">1.0</td>
+              <td>0–1</td>
+              <td class="muted">—</td>
+            </tr>
+            <tr data-text="nullius-pump-energy-multiplier nullius double pump energy multiplier">
+              <td><span class="chip">nullius-pump-energy-multiplier</span></td>
+              <td><span class="src">nullius</span></td>
+              <td>double</td>
+              <td class="num">10</td>
+              <td>0.1–1000</td>
+              <td class="muted">pump energy cost multiplier</td>
+            </tr>
+            <tr data-text="lambent-nil-fluorine lambent nil boolean fluorapatite fluorine">
+              <td><span class="chip">lambent-nil-fluorine</span></td>
+              <td><span class="src">lambent nil</span></td>
+              <td>boolean</td>
+              <td class="num">off</td>
+              <td>—</td>
+              <td class="muted">"Fluorapatite" — adds fluorine to some recipes
+                for an increased challenge</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p id="settingsCount"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ── ecosystem ─────────────────────────────────── -->
+<section id="ecosystem">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">08 · ecosystem</p>
+      <h2>A mod that ships with company</h2>
+      <p>The portal lists Nullius with <b>62 / 121 dependencies</b>. From the
+        mod's <code>info.json</code>: 7 hard dependencies, 49 optional, and 6
+        known conflicts.</p>
+    </div>
+
+    <div class="dep-total reveal">
+      <b>62 / 121</b>
+      <span>dependencies listed on the Factorio mod portal for Nullius 2.0.11
+        — the core is small, the optional long tail is where the train fleets
+        and automation tools live.</span>
+    </div>
+
+    <div class="dep-grid reveal">
+      <div class="dep-col">
+        <h3>Hard dependencies <span class="count">· 7</span></h3>
+        <ul class="deplist">
+          <li>base ≥ 2.0.73</li>
+          <li>alien-biomes ≥ 0.7.4</li>
+          <li>angelsrefininggraphics ≥ 2.0.0</li>
+          <li>angelssmeltinggraphics ≥ 2.0.0</li>
+          <li>angelspetrochemgraphics ≥ 2.0.1</li>
+          <li>boblogistics ≥ 2.0.6</li>
+          <li>configurable-valves ≥ 0.3.3</li>
+        </ul>
+      </div>
+      <div class="dep-col">
+        <h3>Optional <span class="count">· 49</span></h3>
+        <ul class="deplist">
+          <li>RecipeBook ≥ 4.0.2</li>
+          <li>underground-pipe-pack ≥ 1.1.2</li>
+          <li>elevated-rails ≥ 2.0</li>
+          <li>reskins-bobs ≥ 2.3.5</li>
+          <li>Milestones</li>
+          <li>cargo-ships · LTN · LTN Modernized</li>
+          <li>IRobot · jetpack · factorissimo-2</li>
+          <li>Teleporters · Warehousing · cranes</li>
+          <li>miniloader · railloader · train-upgrader</li>
+          <li>… 40 more automation, logistics &amp; QoL</li>
+        </ul>
+      </div>
+      <div class="dep-col">
+        <h3>Incompatible <span class="count">· 6</span></h3>
+        <ul class="deplist">
+          <li class="conflict">space-age</li>
+          <li class="conflict">quality</li>
+          <li class="conflict">aai-industry</li>
+          <li class="conflict">bobores</li>
+          <li class="conflict">stack-size-tooltip</li>
+          <li class="conflict">angelsrefining</li>
+        </ul>
+        <p class="muted" style="font-size:.85rem;margin-top:10px">
+          The angels <i>graphics</i> mods are required; the full refining
+          package conflicts.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:28px">
+      <div class="card reveal">
+        <h3><span class="dot"></span>Official packs</h3>
+        <p>Many of the supported mods are bundled in two official Nullius mod
+          packs:</p>
+        <div class="chiprow">
+          <span class="chip">Nullius Momenti</span>
+          <span class="chip">Nullius Maximus</span>
+        </div>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot"></span>Ports &amp; companions</h3>
+        <p>Mods with their own tech or recipes are ported to work with
+          Nullius, steadily:</p>
+        <div class="chiprow">
+          <span class="chip">Fluid Must Flow</span>
+          <span class="chip">AAI Loaders</span>
+          <span class="chip">Miniloader</span>
+          <span class="chip">Jetpack</span>
+          <span class="chip">LTN</span>
+          <span class="chip">Cargo Ships</span>
+          <span class="chip">Transport Drones</span>
+          <span class="chip">Teleporters</span>
+          <span class="chip">Warehousing</span>
+          <span class="chip">Factorissimo2</span>
+          <span class="chip">Milestones</span>
+          <span class="chip">Informatron</span>
+          <span class="chip">+ dozens more</span>
+        </div>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot blue"></span>Localization</h3>
+        <div class="chiprow">
+          <span class="chip">English</span>
+          <span class="chip">Русский</span>
+          <span class="chip">Polski</span>
+          <span class="chip">한국어</span>
+          <span class="chip">Українська</span>
+          <span class="chip">中文</span>
+          <span class="chip">日本語</span>
+          <span class="chip">Français</span>
+        </div>
+      </div>
+      <div class="card reveal">
+        <h3><span class="dot amber"></span>Licensing &amp; meta</h3>
+        <p class="muted">Nullius — <b>MIT No Attribution</b>. Lambent Nil and
+          Tricky Old Nick — <b>MIT</b>. In development since 2021; the
+          submods followed (created ~3 and ~2 years before this page).</p>
+        <div class="linkrow">
+          <a class="chiplink" href="https://mods.factorio.com/mod/nullius">Mod portal</a>
+          <a class="chiplink" href="https://github.com/GregorSamsanite/nullius">GitHub</a>
+          <a class="chiplink" href="https://discord.gg/tZY2Rkte8Y">Discord</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div>
+      <p class="fbrand">N<b>U</b>LLIUS</p>
+      <p>Unofficial fan page — not affiliated with Wube Software or the mod
+        authors. Nullius by anachrony; Lambent Nil and Tricky Old Nick by the
+        Nullius community. Factorio is a trademark of Wube Software S.A.</p>
+      <p style="margin-top:10px">Figures verified 2026-09-16 against the
+        Factorio mod portal and the mods' sources (GitHub, Codeberg).</p>
+    </div>
+    <nav class="foot-links" aria-label="External links">
+      <a href="https://mods.factorio.com/mod/nullius">Mod portal</a>
+      <a href="https://github.com/GregorSamsanite/nullius">GitHub</a>
+      <a href="https://discord.gg/tZY2Rkte8Y">Discord</a>
+      <a href="https://codeberg.org/cirodrig/lambent-nil">Lambent Nil source</a>
+      <a href="https://codeberg.org/cirodrig/tricky-old-nick">Tricky Old Nick source</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* reveal on scroll (skipped entirely when the user prefers reduced motion) */
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var revealEls = document.querySelectorAll(".reveal");
+  if (reduce || !("IntersectionObserver" in window)) {
+    revealEls.forEach(function(el){ el.classList.add("in"); });
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+    revealEls.forEach(function(el){ io.observe(el); });
+  }
+
+  /* scrollspy: highlight the nav link of the section in view */
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll(".nav-links a"));
+  var byId = {};
+  navLinks.forEach(function(a){ byId[a.getAttribute("href").slice(1)] = a; });
+  if ("IntersectionObserver" in window) {
+    var spy = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting && byId[e.target.id]) {
+          navLinks.forEach(function(l){ l.classList.remove("active"); });
+          byId[e.target.id].classList.add("active");
+        }
+      });
+    }, { rootMargin: "-38% 0px -55% 0px" });
+    document.querySelectorAll("main section[id]").forEach(function(s){ spy.observe(s); });
+  }
+
+  /* fluorapatite toggle: swaps the production picture */
+  var fluorToggle = document.getElementById("fluorToggle");
+  var fluorDemo = document.getElementById("fluorDemo");
+  var fluorStatus = document.getElementById("fluorStatus");
+  if (fluorToggle) {
+    function syncFluor(){
+      var on = fluorToggle.checked;
+      fluorDemo.classList.toggle("on", on);
+      fluorStatus.textContent = on
+        ? "ON — fluorine is added to some recipes for an increased challenge."
+        : "OFF — the standard phosphorus chain, no fluorine required.";
+    }
+    fluorToggle.addEventListener("change", syncFluor);
+    syncFluor();
+  }
+
+  /* settings search: filter table rows, live count */
+  var searchInput = document.getElementById("settingsSearch");
+  var rows = Array.prototype.slice.call(document.querySelectorAll("#settingsTable tr[data-text]"));
+  var countEl = document.getElementById("settingsCount");
+  if (searchInput && countEl) {
+    var total = rows.length;
+    function filter(){
+      var v = searchInput.value.trim().toLowerCase();
+      var n = 0;
+      rows.forEach(function(r){
+        var hit = !v || r.getAttribute("data-text").indexOf(v) !== -1;
+        r.style.display = hit ? "" : "none";
+        if (hit) n++;
+      });
+      countEl.textContent = v
+        ? n + " of " + total + " settings match “" + searchInput.value.trim() + "”"
+        : total + " startup settings";
+    }
+    searchInput.addEventListener("input", filter);
+    filter();
+  }
+})();
+</script>
+</body>
+</html>
